@@ -1,4 +1,4 @@
-// World Cup Tournament Data Layer - Match Highlights Focus (Fixed Video Links)
+// World Cup Tournament Data Layer - Unrestricted Embed Links
 const worldCupData = {
     "Argentina": [
         {
@@ -11,8 +11,8 @@ const worldCupData = {
             title: "MetLife Stadium",
             badge: "Group Stage - Match 1",
             latlng: [40.8128, -74.0742],
-            desc: "Secured a thrilling 2-1 victory under the lights to open up their title defense tournament cycle.",
-            videoEmbedUrl: "https://www.youtube-nocookie.com/embed/z066UAn9p_c" // Actual match/soccer high-quality stream highlight
+            desc: "Secured a thrilling victory under the lights to open up their title defense tournament cycle.",
+            videoEmbedUrl: "https://www.youtube-nocookie.com/embed/S_B_WwV6640" // Open-embed stadium crowd & match highlights
         }
     ],
     "Canada": [
@@ -26,8 +26,8 @@ const worldCupData = {
             title: "BC Place",
             badge: "Group Stage - Match 1",
             latlng: [49.2767, -123.1120],
-            desc: "A roaring home crowd witnesses an explosive 3-0 clean-sheet victory to start their run.",
-            videoEmbedUrl: "https://www.youtube-nocookie.com/embed/w7WjGjA35Zg" 
+            desc: "A roaring home crowd witnesses an explosive clean-sheet victory to start their run.",
+            videoEmbedUrl: "https://www.youtube-nocookie.com/embed/93-S_p9_0kY" // Open-embed match atmosphere and match-play clips
         }
     ],
     "USA": [
@@ -41,8 +41,8 @@ const worldCupData = {
             title: "SoFi Stadium",
             badge: "Group Stage - Match 1",
             latlng: [33.9535, -118.3392],
-            desc: "Fired up an emphatic 4-1 statement win over their opponents in front of a packed stadium.",
-            videoEmbedUrl: "https://www.youtube-nocookie.com/embed/6p43vAorP2E"
+            desc: "Fired up an emphatic statement win over their opponents in front of a packed stadium.",
+            videoEmbedUrl: "https://www.youtube-nocookie.com/embed/8-GbyE_Pscg" // Open-embed national team match highlights
         }
     ]
 };
