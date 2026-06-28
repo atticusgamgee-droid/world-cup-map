@@ -100,6 +100,25 @@
             dropdown.appendChild(opt);
         });
 
+        // Helper to generate curved arc coordinates
+        function getArcCoordinates(start, end) {
+            const lat1 = start[0], lng1 = start[1];
+            const lat2 = end[0], lng2 = end[1];
+            const midLat = (lat1 + lat2) / 2;
+            const midLng = (lng1 + lng2) / 2;
+            const offset = 0.3;
+            const arcLat = midLat + (lng2 - lng1) * offset;
+            const arcLng = midLng - (lat2 - lat1) * offset;
+            const points = [];
+            for (let i = 0; i <= 20; i++) {
+                const t = i / 20;
+                const lat = (1 - t) * (1 - t) * lat1 + 2 * (1 - t) * t * arcLat + t * t * lat2;
+                const lng = (1 - t) * (1 - t) * lng1 + 2 * (1 - t) * t * arcLng + t * t * lng2;
+                points.push([lat, lng]);
+            }
+            return points;
+        }
+
         window.launchTheaterPlayer = function(url) {
             document.getElementById('theater-iframe').src = url;
             const vid = url.split('/').pop().split('?')[0];
@@ -130,7 +149,15 @@
             popupContent += `</div>`;
             marker.bindPopup(popupContent).openPopup();
 
-            if(index > 0) L.polyline(activeJourneyData.slice(0, index+1).map(s => s.latlng), {color: '#2563eb', weight: 4, dashArray: '8, 10'}).addTo(pathLayerGroup);
+            if(index > 0) {
+                const arcPoints = getArcCoordinates(activeJourneyData[index - 1].latlng, stop.latlng);
+                L.polyline(arcPoints, {
+                    color: '#2563eb', 
+                    weight: 3, 
+                    dashArray: '8, 10',
+                    opacity: 0.7
+                }).addTo(pathLayerGroup);
+            }
             
             map.flyTo(stop.latlng, 6);
             
