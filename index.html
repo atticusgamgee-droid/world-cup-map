@@ -238,7 +238,6 @@
             padding: 0 1rem;
         }
 
-        /* Theater Mode Overlay Setup */
         .video-overlay {
             position: fixed;
             top: 0;
@@ -248,6 +247,7 @@
             background-color: rgba(15, 23, 42, 0.95);
             z-index: 5000;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             opacity: 0;
@@ -271,7 +271,6 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        /* Pinned Close button inside frame boundaries */
         .close-overlay-btn {
             position: absolute;
             top: 12px;
@@ -291,10 +290,7 @@
             transition: all 0.2s ease;
         }
 
-        .close-overlay-btn:hover {
-            background: #ef4444;
-            border-color: #ef4444;
-        }
+        .close-overlay-btn:hover { background: #ef4444; border-color: #ef4444; }
 
         .modal-box iframe {
             width: 100%;
@@ -302,7 +298,6 @@
             border: none;
         }
 
-        /* Leaflet popup links */
         .highlight-link-btn {
             display: inline-block;
             margin-top: 10px;
@@ -366,29 +361,28 @@
         </div>
     </div>
 
-    <!-- Fixed Video Theater Overlay Box with Internal Close Button Layout -->
     <div id="theater-overlay" class="video-overlay">
         <div class="modal-box">
             <button id="close-overlay" class="close-overlay-btn">✕ Close Player</button>
             <iframe id="theater-iframe" src="" allow="autoplay; encrypted-media; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
         </div>
+        <div id="fallback-container" style="display: none; text-align: center; margin-top: 15px;">
+            <a id="fallback-link" href="#" target="_blank" style="color: white; text-decoration: underline; font-weight: bold; font-size: 1rem;">
+                Click here to watch on YouTube
+            </a>
+        </div>
     </div>
 
-    <!-- Leaflet JS Map Engine -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    
-    <!-- Core Data Layer Loading -->
     <script src="data.js"></script>
 
     <script>
-        // Init Map Environment
         const map = L.map('map', { center: [28, -50], zoom: 3, zoomControl: false });
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
         }).addTo(map);
         L.control.zoom({ position: 'topleft' }).addTo(map);
 
-        // UI Selectors
         const dropdown = document.getElementById('country-select');
         const teamTitle = document.getElementById('team-title');
         const teamSubtitle = document.getElementById('team-subtitle');
@@ -399,10 +393,11 @@
         const nextBtn = document.getElementById('next-btn');
         const timelineBox = document.getElementById('timeline-box');
 
-        // Overlay Selectors
         const theaterOverlay = document.getElementById('theater-overlay');
         const theaterIframe = document.getElementById('theater-iframe');
         const closeOverlay = document.getElementById('close-overlay');
+        const fallbackContainer = document.getElementById('fallback-container');
+        const fallbackLink = document.getElementById('fallback-link');
 
         let activeJourneyData = [];
         let currentStepIndex = 0;
@@ -420,12 +415,16 @@
 
         window.launchTheaterPlayer = function(embedUrl) {
             theaterIframe.src = embedUrl;
+            const videoId = embedUrl.split('/').pop().split('?')[0];
+            fallbackLink.href = `https://www.youtube.com/watch?v=${videoId}`;
+            fallbackContainer.style.display = 'block';
             theaterOverlay.classList.add('open');
         };
 
         closeOverlay.addEventListener('click', () => {
             theaterOverlay.classList.remove('open');
             theaterIframe.src = ""; 
+            fallbackContainer.style.display = 'none';
         });
 
         function appendAndRenderStep(index) {
