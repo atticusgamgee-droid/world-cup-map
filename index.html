@@ -3,50 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>World Cup Journey Engine</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-curve@0.9.1/leaflet.curve.min.js"></script>
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <title>World Cup Team Route Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
         :root { --primary-color: #1e3a8a; --accent-color: #2563eb; --bg-color: #f8fafc; --panel-bg: #ffffff; --text-main: #0f172a; --text-muted: #64748b; }
-        body { font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background-color: var(--bg-color); }
-        header { background-color: var(--primary-color); color: white; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        h1 { margin: 0; font-size: 1.25rem; }
-        select { padding: 0.5rem 2rem 0.5rem 1rem; border-radius: 0.375rem; border: 1px solid rgba(255,255,255,0.3); background-color: rgba(255,255,255,0.1); color: white; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1rem; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background-color: var(--bg-color); }
+        
+        header { background-color: var(--primary-color); color: white; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); z-index: 1000; }
+        h1 { margin: 0; font-size: 1.25rem; font-weight: 700; }
+
+        select {
+            padding: 0.5rem 2rem 0.5rem 1rem;
+            font-size: 0.95rem;
+            border-radius: 0.375rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1rem;
+        }
+        select option { background-color: white; color: var(--text-main); }
+
         #main-container { display: flex; flex: 1; overflow: hidden; }
         #map { flex: 1; }
-        #story-panel { width: 380px; background: var(--panel-bg); display: flex; flex-direction: column; border-left: 1px solid #e2e8f0; }
+        #story-panel { width: 380px; background-color: var(--panel-bg); display: flex; flex-direction: column; border-left: 1px solid #e2e8f0; z-index: 999; }
+        .panel-header { padding: 1.5rem; border-bottom: 1px solid #e2e8f0; }
         .timeline-scroll-area { flex: 1; overflow-y: auto; padding: 1.5rem; }
-        .timeline-card { border: 1px solid #e2e8f0; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; display: flex; gap: 1rem; }
+        .timeline-card { background: #ffffff; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; display: flex; gap: 1rem; animation: slideIn 0.4s ease-out; }
         .timeline-card.latest-active { border-color: var(--accent-color); background-color: #eff6ff; }
         .card-dot { width: 1rem; height: 1rem; border-radius: 50%; border: 2px solid var(--text-muted); flex-shrink: 0; }
         .timeline-card.latest-active .card-dot { border-color: var(--accent-color); background-color: var(--accent-color); }
-        .badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; }
+        .badge { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; }
+        
         .panel-footer { padding: 1.25rem; border-top: 1px solid #e2e8f0; }
         .btn-next { width: 100%; padding: 0.85rem; background-color: var(--text-main); color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 700; }
-        .btn-next:disabled { background-color: #cbd5e1; }
-        .highlight-link-btn { display: inline-block; margin-top: 10px; padding: 0.5rem 0.75rem; background-color: var(--accent-color); color: white !important; text-decoration: none; font-weight: 700; font-size: 12px; border-radius: 0.375rem; }
-        .video-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15,23,42,0.95); z-index: 5000; display: none; align-items: center; justify-content: center; }
+        .btn-next:disabled { background-color: #cbd5e1; cursor: not-allowed; }
+
+        .video-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(15, 23, 42, 0.95); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .video-overlay.open { display: flex; }
-        .modal-box { width: 90%; max-width: 800px; aspect-ratio: 16/9; background: #000; position: relative; }
-        .close-overlay-btn { position: absolute; top: -40px; right: 0; color: white; cursor: pointer; background: none; border: none; }
+        .modal-box { width: 90%; max-width: 850px; aspect-ratio: 16/9; background: #000; position: relative; border-radius: 0.75rem; }
+        .close-overlay-btn { position: absolute; top: -40px; right: 0; color: white; cursor: pointer; background: none; border: none; font-weight: 700; }
+        
+        .highlight-link-btn { display: inline-block; margin-top: 10px; padding: 0.5rem 0.75rem; background-color: var(--accent-color); color: white !important; text-decoration: none; font-weight: 700; font-size: 12px; border-radius: 0.375rem; cursor: pointer; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <header><h1>🏆 World Cup Journey Engine</h1><select id="country-select"><option value="">Select a Country...</option></select></header>
+    <header>
+        <h1>🏆 World Cup Journey Engine</h1>
+        <select id="country-select">
+            <option value="">Select a Country...</option>
+        </select>
+    </header>
 
     <div id="main-container">
         <div id="map"></div>
         <div id="story-panel">
+            <div class="panel-header"><h2 id="team-title">Select a Team</h2></div>
             <div id="timeline-box" class="timeline-scroll-area"><div id="appended-cards-container"></div></div>
-            <div id="footer-actions" class="panel-footer" style="display: none;"><button id="next-btn" class="btn-next">Next Destination ➡️</button></div>
+            <div id="footer-actions" class="panel-footer" style="display: none;">
+                <button id="next-btn" class="btn-next">Next Destination ➡️</button>
+            </div>
         </div>
     </div>
 
     <div id="theater-overlay" class="video-overlay">
         <div class="modal-box">
             <button id="close-overlay" class="close-overlay-btn">✕ Close Player</button>
-            <iframe id="theater-iframe" src="" allow="autoplay; fullscreen" style="width:100%;height:100%;border:none;"></iframe>
+            <iframe id="theater-iframe" src="" allow="autoplay; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        </div>
+        <div id="fallback-container" style="display: none; margin-top: 15px;">
+            <a id="fallback-link" href="#" target="_blank" style="color: white; text-decoration: underline; font-weight: bold;">Watch on YouTube</a>
         </div>
     </div>
 
@@ -66,13 +100,18 @@
             dropdown.appendChild(opt);
         });
 
-        // Curved path helper
-        function getCurvedControlPoint(start, end) {
-            const midLat = (start[0] + end[0]) / 2;
-            const midLng = (start[1] + end[1]) / 2;
-            const offset = 0.3; 
-            return [midLat + (end[1] - start[1]) * offset, midLng - (end[0] - start[0]) * offset];
-        }
+        window.launchTheaterPlayer = function(url) {
+            document.getElementById('theater-iframe').src = url;
+            const vid = url.split('/').pop().split('?')[0];
+            document.getElementById('fallback-link').href = `https://www.youtube.com/watch?v=${vid}`;
+            document.getElementById('fallback-container').style.display = 'block';
+            document.getElementById('theater-overlay').classList.add('open');
+        };
+
+        document.getElementById('close-overlay').onclick = () => {
+            document.getElementById('theater-overlay').classList.remove('open');
+            document.getElementById('theater-iframe').src = "";
+        };
 
         function renderStep(index) {
             const stop = activeJourneyData[index];
@@ -84,32 +123,21 @@
             const icon = L.divIcon({ html: `<div style="background:#2563eb; color:white; border-radius:50%; width:24px; height:24px; text-align:center; font-size:12px; border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.2);">${index + 1}</div>` });
             const marker = L.marker(stop.latlng, { icon }).addTo(markerLayerGroup);
             
-            let popupContent = `<div><b>${stop.title}</b><p>${stop.desc}</p>`;
-            if (stop.videoEmbedUrl) popupContent += `<a onclick="launchTheaterPlayer('${stop.videoEmbedUrl}')" class="highlight-link-btn">📺 Watch Highlights</a>`;
-            marker.bindPopup(popupContent + `</div>`).openPopup();
-
-            if(index > 0) {
-                const prev = activeJourneyData[index - 1].latlng;
-                const cp = getCurvedControlPoint(prev, stop.latlng);
-                L.curve(['M', prev, 'Q', cp, stop.latlng], {
-                    color: '#2563eb', weight: 4, dashArray: '8, 8'
-                }).addTo(pathLayerGroup);
+            let popupContent = `<div style="min-width: 200px;"><b>${stop.title}</b><p>${stop.desc}</p>`;
+            if (stop.videoEmbedUrl) {
+                popupContent += `<a onclick="launchTheaterPlayer('${stop.videoEmbedUrl}')" class="highlight-link-btn">📺 Watch Highlights</a>`;
             }
+            popupContent += `</div>`;
+            marker.bindPopup(popupContent).openPopup();
+
+            if(index > 0) L.polyline(activeJourneyData.slice(0, index+1).map(s => s.latlng), {color: '#2563eb', weight: 4, dashArray: '8, 10'}).addTo(pathLayerGroup);
             
             map.flyTo(stop.latlng, 6);
+            
             const btn = document.getElementById('next-btn');
             btn.disabled = (index === activeJourneyData.length - 1);
+            btn.textContent = btn.disabled ? "Journey Completed 🎉" : "Next Destination ➡️";
         }
-
-        window.launchTheaterPlayer = (url) => {
-            document.getElementById('theater-iframe').src = url;
-            document.getElementById('theater-overlay').classList.add('open');
-        };
-
-        document.getElementById('close-overlay').onclick = () => {
-            document.getElementById('theater-overlay').classList.remove('open');
-            document.getElementById('theater-iframe').src = "";
-        };
 
         dropdown.onchange = (e) => {
             activeJourneyData = worldCupData[e.target.value] || [];
