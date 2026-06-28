@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>World Cup Team Route Tracker</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -244,7 +245,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-color: rgba(15, 23, 42, 0.9);
+            background-color: rgba(15, 23, 42, 0.95);
             z-index: 5000;
             display: flex;
             align-items: center;
@@ -261,28 +262,38 @@
 
         .modal-box {
             width: 90%;
-            max-width: 800px;
+            max-width: 850px;
             aspect-ratio: 16/9;
             background: #000;
             position: relative;
             border-radius: 0.75rem;
-            overflow: hidden;
+            border: 1px solid #334155;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
+        /* Pinned Close button inside frame boundaries */
         .close-overlay-btn {
             position: absolute;
-            top: -40px;
-            right: 0;
-            background: none;
-            border: none;
+            top: 12px;
+            right: 12px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.25);
             color: white;
-            font-size: 1.1rem;
+            padding: 6px 14px;
+            font-size: 0.85rem;
             font-weight: 700;
+            border-radius: 20px;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 0.25rem;
+            z-index: 5010;
+            transition: all 0.2s ease;
+        }
+
+        .close-overlay-btn:hover {
+            background: #ef4444;
+            border-color: #ef4444;
         }
 
         .modal-box iframe {
@@ -291,7 +302,7 @@
             border: none;
         }
 
-        /* Leaflet popup customization links */
+        /* Leaflet popup links */
         .highlight-link-btn {
             display: inline-block;
             margin-top: 10px;
@@ -355,7 +366,7 @@
         </div>
     </div>
 
-    <!-- Video Theater Overlay Box with Strict-Origin Handshake Security -->
+    <!-- Fixed Video Theater Overlay Box with Internal Close Button Layout -->
     <div id="theater-overlay" class="video-overlay">
         <div class="modal-box">
             <button id="close-overlay" class="close-overlay-btn">✕ Close Player</button>
@@ -398,7 +409,6 @@
         let markerLayerGroup = L.layerGroup().addTo(map);
         let pathLayerGroup = L.layerGroup().addTo(map);
 
-        // Dynamically configure options array from worldCupData keys
         if (typeof worldCupData !== 'undefined') {
             Object.keys(worldCupData).sort().forEach(code => {
                 const opt = document.createElement('option');
@@ -408,7 +418,6 @@
             });
         }
 
-        // Lightbox trigger engine
         window.launchTheaterPlayer = function(embedUrl) {
             theaterIframe.src = embedUrl;
             theaterOverlay.classList.add('open');
@@ -416,7 +425,7 @@
 
         closeOverlay.addEventListener('click', () => {
             theaterOverlay.classList.remove('open');
-            theaterIframe.src = ""; // Instantly drops background video audio streams to silence playback
+            theaterIframe.src = ""; 
         });
 
         function appendAndRenderStep(index) {
@@ -425,7 +434,6 @@
 
             document.querySelectorAll('.timeline-card').forEach(c => c.classList.remove('latest-active'));
 
-            // Generate timeline milestone layout
             const card = document.createElement('div');
             card.className = 'timeline-card latest-active';
             card.innerHTML = `
@@ -449,7 +457,6 @@
             });
             const marker = L.marker(stop.latlng, { icon: currentIcon }).addTo(markerLayerGroup);
 
-            // Vector line generation rules
             pathLayerGroup.clearLayers();
             const visibleRouteHistory = activeJourneyData.slice(0, index + 1).map(s => s.latlng);
             if (visibleRouteHistory.length > 1) {
@@ -461,7 +468,6 @@
 
             map.flyTo(stop.latlng, index === 0 ? 4 : 6, { animate: true, duration: 1.4 });
 
-            // Build Leaflet Popup block without GIF footprint
             let bubbleHtml = `<div style="min-width: 220px; padding: 2px;">
                 <b style="font-size:14px; color:#1e3a8a;">${stop.title}</b>
                 <p style="margin:4px 0 8px 0; font-size:12px; color:#475569; line-height:1.45;">${stop.desc}</p>`;
