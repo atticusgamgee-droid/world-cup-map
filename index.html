@@ -123,13 +123,12 @@
             const icon = L.divIcon({ html: `<div style="background:#2563eb; color:white; border-radius:50%; width:24px; height:24px; text-align:center; font-size:12px; border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.2);">${index + 1}</div>` });
             const marker = L.marker(stop.latlng, { icon }).addTo(markerLayerGroup);
             
-            // Re-adding popup functionality
             let popupContent = `<div style="min-width: 200px;"><b>${stop.title}</b><p>${stop.desc}</p>`;
             if (stop.videoEmbedUrl) {
                 popupContent += `<a onclick="launchTheaterPlayer('${stop.videoEmbedUrl}')" class="highlight-link-btn">📺 Watch Highlights</a>`;
             }
             popupContent += `</div>`;
-            marker.bindPopup(popupContent);
+            marker.bindPopup(popupContent).openPopup();
 
             if(index > 0) L.polyline(activeJourneyData.slice(0, index+1).map(s => s.latlng), {color: '#2563eb', weight: 4, dashArray: '8, 10'}).addTo(pathLayerGroup);
             
