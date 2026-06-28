@@ -49,6 +49,8 @@
         .video-overlay.open { display: flex; }
         .modal-box { width: 90%; max-width: 850px; aspect-ratio: 16/9; background: #000; position: relative; border-radius: 0.75rem; }
         .close-overlay-btn { position: absolute; top: -40px; right: 0; color: white; cursor: pointer; background: none; border: none; font-weight: 700; }
+        
+        .highlight-link-btn { display: inline-block; margin-top: 10px; padding: 0.5rem 0.75rem; background-color: var(--accent-color); color: white !important; text-decoration: none; font-weight: 700; font-size: 12px; border-radius: 0.375rem; cursor: pointer; }
         @keyframes slideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -119,8 +121,16 @@
             document.getElementById('appended-cards-container').appendChild(card);
 
             const icon = L.divIcon({ html: `<div style="background:#2563eb; color:white; border-radius:50%; width:24px; height:24px; text-align:center; font-size:12px; border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.2);">${index + 1}</div>` });
-            L.marker(stop.latlng, { icon }).addTo(markerLayerGroup);
+            const marker = L.marker(stop.latlng, { icon }).addTo(markerLayerGroup);
             
+            // Re-adding popup functionality
+            let popupContent = `<div style="min-width: 200px;"><b>${stop.title}</b><p>${stop.desc}</p>`;
+            if (stop.videoEmbedUrl) {
+                popupContent += `<a onclick="launchTheaterPlayer('${stop.videoEmbedUrl}')" class="highlight-link-btn">📺 Watch Highlights</a>`;
+            }
+            popupContent += `</div>`;
+            marker.bindPopup(popupContent);
+
             if(index > 0) L.polyline(activeJourneyData.slice(0, index+1).map(s => s.latlng), {color: '#2563eb', weight: 4, dashArray: '8, 10'}).addTo(pathLayerGroup);
             
             map.flyTo(stop.latlng, 6);
