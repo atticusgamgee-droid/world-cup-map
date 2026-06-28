@@ -6,6 +6,7 @@
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>World Cup Team Route Tracker</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-curve@0.9.1/leaflet.curve.min.js"></script>
     <style>
         :root { --primary-color: #1e3a8a; --accent-color: #2563eb; --bg-color: #f8fafc; --panel-bg: #ffffff; --text-main: #0f172a; --text-muted: #64748b; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background-color: var(--bg-color); }
@@ -113,6 +114,14 @@
             document.getElementById('theater-iframe').src = "";
         };
 
+        function getCurvedPath(start, end) {
+            const latDiff = (end[0] - start[0]) / 2;
+            const lngDiff = (end[1] - start[1]) / 2;
+            const midLat = (start[0] + end[0]) / 2 + (lngDiff * 0.3);
+            const midLng = (start[1] + end[1]) / 2 - (latDiff * 0.3);
+            return [start, [midLat, midLng], end];
+        }
+
         function renderStep(index) {
             const stop = activeJourneyData[index];
             const card = document.createElement('div');
@@ -130,7 +139,18 @@
             popupContent += `</div>`;
             marker.bindPopup(popupContent).openPopup();
 
-            if(index > 0) L.polyline(activeJourneyData.slice(0, index+1).map(s => s.latlng), {color: '#2563eb', weight: 4, dashArray: '8, 10'}).addTo(pathLayerGroup);
+            if(index > 0) {
+                const prev = activeJourneyData[index - 1].latlng;
+                const curr = stop.latlng;
+                const cp = getCurvedPath(prev, curr);
+                // Assign color based on the index to differentiate sequential segments
+                const colors = ['#2563eb', '#ef4444', '#f59e0b', '#10b981'];
+                L.curve(['M', prev, 'Q', cp[1], curr], {
+                    color: colors[index % colors.length],
+                    weight: 4,
+                    dashArray: '8, 8'
+                }).addTo(pathLayerGroup);
+            }
             
             map.flyTo(stop.latlng, 6);
             
