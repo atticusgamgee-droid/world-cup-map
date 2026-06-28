@@ -13,21 +13,7 @@
         header { background-color: var(--primary-color); color: white; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); z-index: 1000; }
         h1 { margin: 0; font-size: 1.25rem; font-weight: 700; }
 
-        select {
-            padding: 0.5rem 2rem 0.5rem 1rem;
-            font-size: 0.95rem;
-            border-radius: 0.375rem;
-            border: 1px solid rgba(255,255,255,0.3);
-            background-color: rgba(255,255,255,0.1);
-            color: white;
-            cursor: pointer;
-            outline: none;
-            appearance: none;
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
-            background-repeat: no-repeat;
-            background-position: right 0.5rem center;
-            background-size: 1rem;
-        }
+        select { padding: 0.5rem 2rem 0.5rem 1rem; font-size: 0.95rem; border-radius: 0.375rem; border: 1px solid rgba(255,255,255,0.3); background-color: rgba(255,255,255,0.1); color: white; cursor: pointer; outline: none; appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1rem; }
         select option { background-color: white; color: var(--text-main); }
 
         #main-container { display: flex; flex: 1; overflow: hidden; }
@@ -58,9 +44,7 @@
 
     <header>
         <h1>🏆 World Cup Journey Engine</h1>
-        <select id="country-select">
-            <option value="">Select a Country...</option>
-        </select>
+        <select id="country-select"><option value="">Select a Country...</option></select>
     </header>
 
     <div id="main-container">
@@ -68,9 +52,7 @@
         <div id="story-panel">
             <div class="panel-header"><h2 id="team-title">Select a Team</h2></div>
             <div id="timeline-box" class="timeline-scroll-area"><div id="appended-cards-container"></div></div>
-            <div id="footer-actions" class="panel-footer" style="display: none;">
-                <button id="next-btn" class="btn-next">Next Destination ➡️</button>
-            </div>
+            <div id="footer-actions" class="panel-footer" style="display: none;"><button id="next-btn" class="btn-next">Next Destination ➡️</button></div>
         </div>
     </div>
 
@@ -78,9 +60,6 @@
         <div class="modal-box">
             <button id="close-overlay" class="close-overlay-btn">✕ Close Player</button>
             <iframe id="theater-iframe" src="" allow="autoplay; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-        </div>
-        <div id="fallback-container" style="display: none; margin-top: 15px;">
-            <a id="fallback-link" href="#" target="_blank" style="color: white; text-decoration: underline; font-weight: bold;">Watch on YouTube</a>
         </div>
     </div>
 
@@ -93,6 +72,7 @@
         let activeJourneyData = [], currentStepIndex = 0;
         const markerLayerGroup = L.layerGroup().addTo(map);
         const pathLayerGroup = L.layerGroup().addTo(map);
+        const cityMarkers = {}; // Tracks markers to group by location
 
         const dropdown = document.getElementById('country-select');
         Object.keys(worldCupData).sort().forEach(code => {
@@ -100,30 +80,21 @@
             dropdown.appendChild(opt);
         });
 
-        // Helper: Generate curved arc coordinates
         function getArcCoordinates(start, end) {
-            const lat1 = start[0], lng1 = start[1];
-            const lat2 = end[0], lng2 = end[1];
-            const midLat = (lat1 + lat2) / 2;
-            const midLng = (lng1 + lng2) / 2;
+            const lat1 = start[0], lng1 = start[1], lat2 = end[0], lng2 = end[1];
+            const midLat = (lat1 + lat2) / 2, midLng = (lng1 + lng2) / 2;
             const offset = 0.3;
-            const arcLat = midLat + (lng2 - lng1) * offset;
-            const arcLng = midLng - (lat2 - lat1) * offset;
+            const arcLat = midLat + (lng2 - lng1) * offset, arcLng = midLng - (lat2 - lat1) * offset;
             const points = [];
             for (let i = 0; i <= 20; i++) {
                 const t = i / 20;
-                const lat = (1 - t) * (1 - t) * lat1 + 2 * (1 - t) * t * arcLat + t * t * lat2;
-                const lng = (1 - t) * (1 - t) * lng1 + 2 * (1 - t) * t * arcLng + t * t * lng2;
-                points.push([lat, lng]);
+                points.push([(1-t)*(1-t)*lat1 + 2*(1-t)*t*arcLat + t*t*lat2, (1-t)*(1-t)*lng1 + 2*(1-t)*t*arcLng + t*t*lng2]);
             }
             return points;
         }
 
-        window.launchTheaterPlayer = function(url) {
+        window.launchTheaterPlayer = (url) => {
             document.getElementById('theater-iframe').src = url;
-            const vid = url.split('/').pop().split('?')[0];
-            document.getElementById('fallback-link').href = `https://www.youtube.com/watch?v=${vid}`;
-            document.getElementById('fallback-container').style.display = 'block';
             document.getElementById('theater-overlay').classList.add('open');
         };
 
@@ -139,34 +110,21 @@
             card.innerHTML = `<div class="card-dot"></div><div><div class="badge">${stop.badge}</div><h3>${stop.title}</h3><p>${stop.desc}</p></div>`;
             document.getElementById('appended-cards-container').appendChild(card);
 
-            // Apply slight coordinate offset based on index to prevent stacking
-            const offset = 0.02;
-            const jitterLat = stop.latlng[0] + (index * offset);
-            const jitterLng = stop.latlng[1] + (index * offset);
-            const displayLatLng = [jitterLat, jitterLng];
-
-            const icon = L.divIcon({ html: `<div style="background:#2563eb; color:white; border-radius:50%; width:24px; height:24px; text-align:center; font-size:12px; border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.2); line-height:24px;">${index + 1}</div>` });
-            const marker = L.marker(displayLatLng, { icon }).addTo(markerLayerGroup);
+            if (cityMarkers[stop.title]) {
+                const currentLabel = cityMarkers[stop.title].options.icon.options.html.match(/>([\d, ]+)</)[1];
+                const newLabel = `${currentLabel}, ${index + 1}`;
+                cityMarkers[stop.title].setIcon(L.divIcon({ html: `<div style="background:#2563eb; color:white; border-radius:12px; padding:2px 8px; font-size:12px; border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.2); font-weight:bold;">${newLabel}</div>` }));
+            } else {
+                cityMarkers[stop.title] = L.marker(stop.latlng, { icon: L.divIcon({ html: `<div style="background:#2563eb; color:white; border-radius:12px; padding:2px 8px; font-size:12px; border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.2); font-weight:bold;">${index + 1}</div>` }) }).addTo(markerLayerGroup);
+            }
             
             let popupContent = `<div style="min-width: 200px;"><b>${stop.title}</b><p>${stop.desc}</p>`;
-            if (stop.videoEmbedUrl) {
-                popupContent += `<a onclick="launchTheaterPlayer('${stop.videoEmbedUrl}')" class="highlight-link-btn">📺 Watch Highlights</a>`;
-            }
-            popupContent += `</div>`;
-            marker.bindPopup(popupContent).openPopup();
+            if (stop.videoEmbedUrl) popupContent += `<a onclick="launchTheaterPlayer('${stop.videoEmbedUrl}')" class="highlight-link-btn">📺 Watch Highlights</a>`;
+            cityMarkers[stop.title].bindPopup(popupContent + `</div>`).openPopup();
 
-            if(index > 0) {
-                const arcPoints = getArcCoordinates(activeJourneyData[index - 1].latlng, stop.latlng);
-                L.polyline(arcPoints, {
-                    color: '#2563eb', 
-                    weight: 3, 
-                    dashArray: '8, 10',
-                    opacity: 0.7
-                }).addTo(pathLayerGroup);
-            }
+            if(index > 0) L.polyline(getArcCoordinates(activeJourneyData[index - 1].latlng, stop.latlng), {color: '#2563eb', weight: 3, dashArray: '8, 10', opacity: 0.7}).addTo(pathLayerGroup);
             
-            map.flyTo(stop.latlng, 5); // Zoomed slightly out to see the markers better
-            
+            map.flyTo(stop.latlng, 5);
             const btn = document.getElementById('next-btn');
             btn.disabled = (index === activeJourneyData.length - 1);
             btn.textContent = btn.disabled ? "Journey Completed 🎉" : "Next Destination ➡️";
@@ -175,9 +133,9 @@
         dropdown.onchange = (e) => {
             activeJourneyData = worldCupData[e.target.value] || [];
             currentStepIndex = 0;
+            for (let key in cityMarkers) delete cityMarkers[key];
             document.getElementById('appended-cards-container').innerHTML = '';
-            markerLayerGroup.clearLayers();
-            pathLayerGroup.clearLayers();
+            markerLayerGroup.clearLayers(); pathLayerGroup.clearLayers();
             document.getElementById('footer-actions').style.display = activeJourneyData.length ? 'block' : 'none';
             if(activeJourneyData.length) renderStep(0);
         };
