@@ -13,14 +13,16 @@
         #map { flex: 1; }
         #story-panel { width: 380px; background: var(--panel-bg); display: flex; flex-direction: column; border-left: 1px solid #e2e8f0; }
         .timeline-scroll-area { flex: 1; overflow-y: auto; padding: 1.5rem; }
-        .timeline-card { background: #ffffff; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; }
+        .timeline-card { background: #ffffff; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; animation: slideIn 0.4s ease-out; }
+        .latest-active { border-color: var(--accent-color); background-color: #eff6ff; }
         .video-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.96); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .video-overlay.open { display: flex; }
         .modal-box { width: 90%; max-width: 850px; aspect-ratio: 16/9; background: #000; position: relative; border-radius: 0.75rem; }
-        .close-overlay-btn { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.5); color: white; border: none; padding: 6px 14px; border-radius: 20px; cursor: pointer; }
+        .close-overlay-btn { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.5); color: white; border: none; padding: 6px 14px; border-radius: 20px; cursor: pointer; z-index: 5010; }
         .fallback-container { margin-top: 1.5rem; text-align: center; color: #94a3b8; }
         .fallback-btn { display: inline-block; margin-top: 0.5rem; padding: 0.6rem 1.2rem; background-color: #2563eb; color: white; text-decoration: none; font-weight: bold; border-radius: 0.375rem; }
         .highlight-link-btn { display: inline-block; margin-top: 10px; padding: 0.5rem 0.75rem; background-color: var(--accent-color); color: white !important; text-decoration: none; font-size: 12px; border-radius: 0.375rem; cursor: pointer; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -28,7 +30,12 @@
     <div id="main-container">
         <div id="map"></div>
         <div id="story-panel">
-            <div id="timeline-box" class="timeline-scroll-area"><div id="appended-cards-container"></div></div>
+            <div id="timeline-box" class="timeline-scroll-area">
+                <div id="appended-cards-container"></div>
+            </div>
+            <div id="footer-actions" class="panel-footer" style="padding: 1rem; border-top: 1px solid #e2e8f0; display: none;">
+                <button id="next-btn" style="width: 100%; padding: 0.8rem; background: var(--text-main); color: white; border: none; border-radius: 0.5rem; cursor: pointer;">Next Destination ➡️</button>
+            </div>
         </div>
     </div>
     <div id="theater-overlay" class="video-overlay">
@@ -46,22 +53,39 @@
     <script>
         const map = L.map('map').setView([28, -50], 3);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
-        const theaterOverlay = document.getElementById('theater-overlay');
-        const theaterIframe = document.getElementById('theater-iframe');
-        const fallbackYoutubeLink = document.getElementById('fallback-youtube-link');
+        let activeJourneyData = [], currentStepIndex = 0;
+        const markerLayer = L.layerGroup().addTo(map);
 
-        window.launchTheaterPlayer = function(embedUrl) {
-            theaterIframe.src = embedUrl;
-            // Robust extraction of Video ID to create a valid direct watch link
-            const videoId = embedUrl.split('/').pop();
-            fallbackYoutubeLink.href = `https://www.youtube.com/watch?v=${videoId}`;
-            theaterOverlay.classList.add('open');
+        window.launchTheaterPlayer = function(url) {
+            document.getElementById('theater-iframe').src = url;
+            document.getElementById('fallback-youtube-link').href = `https://www.youtube.com/watch?v=${url.split('/').pop()}`;
+            document.getElementById('theater-overlay').classList.add('open');
         };
 
         document.getElementById('close-overlay').addEventListener('click', () => {
-            theaterOverlay.classList.remove('open');
-            theaterIframe.src = "";
+            document.getElementById('theater-overlay').classList.remove('open');
+            document.getElementById('theater-iframe').src = "";
         });
+
+        function renderStep(index) {
+            const stop = activeJourneyData[index];
+            const container = document.getElementById('appended-cards-container');
+            const card = document.createElement('div');
+            card.className = 'timeline-card latest-active';
+            card.innerHTML = `<h3>${stop.title}</h3><p>${stop.desc}</p>`;
+            if (stop.videoEmbedUrl) {
+                const btn = document.createElement('a');
+                btn.className = 'highlight-link-btn'; btn.textContent = '📺 Watch Highlights';
+                btn.onclick = () => launchTheaterPlayer(stop.videoEmbedUrl);
+                card.appendChild(btn);
+            }
+            container.appendChild(card);
+            markerLayer.clearLayers();
+            const marker = L.marker(stop.latlng).addTo(markerLayer);
+            marker.bindPopup(`<b>${stop.title}</b>`).openPopup();
+            map.flyTo(stop.latlng, 6);
+            document.getElementById('next-btn').disabled = (index === activeJourneyData.length - 1);
+        }
 
         const dropdown = document.getElementById('country-select');
         Object.keys(worldCupData).sort().forEach(code => {
@@ -70,24 +94,15 @@
         });
 
         dropdown.addEventListener('change', (e) => {
-            const selection = e.target.value;
-            const container = document.getElementById('appended-cards-container');
-            container.innerHTML = '';
-            if (worldCupData[selection]) {
-                worldCupData[selection].forEach((stop, i) => {
-                    const card = document.createElement('div');
-                    card.className = 'timeline-card';
-                    card.innerHTML = `<h3>${stop.title}</h3><p>${stop.desc}</p>`;
-                    if (stop.videoEmbedUrl) {
-                        const btn = document.createElement('a');
-                        btn.className = 'highlight-link-btn';
-                        btn.textContent = '📺 Watch Highlights';
-                        btn.onclick = () => launchTheaterPlayer(stop.videoEmbedUrl);
-                        card.appendChild(btn);
-                    }
-                    container.appendChild(card);
-                });
-            }
+            activeJourneyData = worldCupData[e.target.value] || [];
+            currentStepIndex = 0;
+            document.getElementById('appended-cards-container').innerHTML = '';
+            document.getElementById('footer-actions').style.display = activeJourneyData.length ? 'block' : 'none';
+            if (activeJourneyData.length) renderStep(0);
+        });
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            if (currentStepIndex < activeJourneyData.length - 1) renderStep(++currentStepIndex);
         });
     </script>
 </body>
