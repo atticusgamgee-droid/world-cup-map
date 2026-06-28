@@ -38,7 +38,6 @@
         
         .highlight-link-btn { display: inline-block; margin-top: 10px; padding: 0.5rem 0.75rem; background-color: var(--accent-color); color: white !important; text-decoration: none; font-weight: 700; font-size: 12px; border-radius: 0.375rem; cursor: pointer; }
         
-        /* New Pill Styling */
         .marker-pill { background: #2563eb; color: white; border-radius: 20px; padding: 4px 12px; font-size: 13px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); font-weight: bold; white-space: nowrap; display: inline-block; }
         .custom-div-icon { background: none; border: none; }
         
@@ -77,7 +76,7 @@
         let activeJourneyData = [], currentStepIndex = 0;
         const markerLayerGroup = L.layerGroup().addTo(map);
         const pathLayerGroup = L.layerGroup().addTo(map);
-        const cityMarkers = {}; // Tracks markers by lat/lng key
+        const cityMarkers = {}; 
 
         const dropdown = document.getElementById('country-select');
         Object.keys(worldCupData).sort().forEach(code => {
@@ -98,43 +97,34 @@
             return points;
         }
 
-        window.launchTheaterPlayer = (url) => {
-            document.getElementById('theater-iframe').src = url;
-            document.getElementById('theater-overlay').classList.add('open');
-        };
-
-        document.getElementById('close-overlay').onclick = () => {
-            document.getElementById('theater-overlay').classList.remove('open');
-            document.getElementById('theater-iframe').src = "";
-        };
-
-        function renderStep(index) {
+        function createOrUpdateMarker(index) {
             const stop = activeJourneyData[index];
             const latLngKey = stop.latlng.join(',');
-            
-            // Marker Grouping Logic
             if (cityMarkers[latLngKey]) {
                 const marker = cityMarkers[latLngKey];
-                const currentHtml = marker.options.icon.options.html;
-                const match = currentHtml.match(/>([\d, ]+)</);
+                const match = marker.options.icon.options.html.match(/>([\d, ]+)</);
                 const newNumbers = match ? `${match[1]}, ${index + 1}` : `${index + 1}`;
                 marker.setIcon(L.divIcon({ className: 'custom-div-icon', html: `<div class="marker-pill">${newNumbers}</div>` }));
             } else {
                 cityMarkers[latLngKey] = L.marker(stop.latlng, { icon: L.divIcon({ className: 'custom-div-icon', html: `<div class="marker-pill">${index + 1}</div>` }) }).addTo(markerLayerGroup);
             }
+            return cityMarkers[latLngKey];
+        }
+
+        function renderStep(index) {
+            const stop = activeJourneyData[index];
+            const currentMarker = createOrUpdateMarker(index);
             
-            // UI Cards
             const card = document.createElement('div');
-            card.className = 'timeline-card latest-active';
+            card.className = 'timeline-card' + (index === currentStepIndex ? ' latest-active' : '');
             card.innerHTML = `<div class="card-dot"></div><div><div class="badge">${stop.badge}</div><h3>${stop.title}</h3><p>${stop.desc}</p></div>`;
             document.getElementById('appended-cards-container').appendChild(card);
 
-            // Popups & Paths
+            if(index > 0) L.polyline(getArcCoordinates(activeJourneyData[index - 1].latlng, stop.latlng), {color: '#2563eb', weight: 3, dashArray: '8, 10', opacity: 0.7}).addTo(pathLayerGroup);
+            
             let popupContent = `<div style="min-width: 200px;"><b>${stop.title}</b><p>${stop.desc}</p>`;
             if (stop.videoEmbedUrl) popupContent += `<a onclick="launchTheaterPlayer('${stop.videoEmbedUrl}')" class="highlight-link-btn">📺 Watch Highlights</a>`;
-            cityMarkers[latLngKey].bindPopup(popupContent + `</div>`).openPopup();
-
-            if(index > 0) L.polyline(getArcCoordinates(activeJourneyData[index - 1].latlng, stop.latlng), {color: '#2563eb', weight: 3, dashArray: '8, 10', opacity: 0.7}).addTo(pathLayerGroup);
+            currentMarker.bindPopup(popupContent + `</div>`).openPopup();
             
             map.flyTo(stop.latlng, 5);
             const btn = document.getElementById('next-btn');
@@ -149,11 +139,21 @@
             document.getElementById('appended-cards-container').innerHTML = '';
             markerLayerGroup.clearLayers(); pathLayerGroup.clearLayers();
             document.getElementById('footer-actions').style.display = activeJourneyData.length ? 'block' : 'none';
-            if(activeJourneyData.length) renderStep(0);
+            if(activeJourneyData.length > 0) renderStep(0);
         };
 
         document.getElementById('next-btn').onclick = () => {
             if(currentStepIndex < activeJourneyData.length - 1) renderStep(++currentStepIndex);
+        };
+
+        window.launchTheaterPlayer = (url) => {
+            document.getElementById('theater-iframe').src = url;
+            document.getElementById('theater-overlay').classList.add('open');
+        };
+
+        document.getElementById('close-overlay').onclick = () => {
+            document.getElementById('theater-overlay').classList.remove('open');
+            document.getElementById('theater-iframe').src = "";
         };
     </script>
 </body>
