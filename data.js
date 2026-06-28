@@ -1,48 +1,71 @@
-// World Cup Tournament Data Layer - Match Highlights Focus (Fixes Error 153)
 const worldCupData = {
     "Argentina": [
         {
-            title: "Miami Base Camp",
-            badge: "Preparation",
-            latlng: [25.7617, -80.1918],
-            desc: "The reigning champions establish camp in Florida, drawing massive crowds to open training sessions."
+            title: "MetLife Stadium, East Rutherford",
+            badge: "Match 1",
+            latlng: [40.8128, -74.0742],
+            desc: "Argentina kicks off their campaign with a dominant display, securing a comfortable opening victory.",
+            videoEmbedUrl: "https://www.youtube.com/embed/VqovRX7okj4"
         },
         {
-            title: "MetLife Stadium",
-            badge: "Group Stage - Match 1",
-            latlng: [40.8128, -74.0742],
-            desc: "Secured a thrilling 2-1 victory under the lights to open up their title defense tournament cycle.",
-            videoEmbedUrl: "https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ" // Cookie-less privacy domain
+            title: "Mercedes-Benz Stadium, Atlanta",
+            badge: "Match 2",
+            latlng: [33.7555, -84.4002],
+            desc: "A tactical battle in Atlanta where Argentina breaks the deadlock late in the second half.",
+            videoEmbedUrl: "https://www.youtube.com/embed/VqovRX7okj4"
+        },
+        {
+            title: "Hard Rock Stadium, Miami",
+            badge: "Match 3",
+            latlng: [25.9580, -80.2389],
+            desc: "Final group stage match in the Florida heat, sealing top spot in the group with style.",
+            videoEmbedUrl: "https://www.youtube.com/embed/VqovRX7okj4"
         }
     ],
     "Canada": [
         {
-            title: "Toronto Training Centre",
-            badge: "Preparation",
-            latlng: [43.6532, -79.3832],
-            desc: "Gathering the squad on home soil to finalize tactical sets before the tournament opening match."
+            title: "BC Place, Vancouver",
+            badge: "Match 1",
+            latlng: [49.2767, -123.1120],
+            desc: "The home crowd erupts as Canada puts on a historic performance in their opening match.",
+            videoEmbedUrl: "https://www.youtube.com/embed/X4WlV84rONo"
         },
         {
-            title: "BC Place",
-            badge: "Group Stage - Match 1",
+            title: "BMO Field, Toronto",
+            badge: "Match 2",
+            latlng: [43.6332, -79.4187],
+            desc: "A high-intensity match under the lights in Toronto, ending in a hard-fought draw.",
+            videoEmbedUrl: "https://www.youtube.com/embed/X4WlV84rONo"
+        },
+        {
+            title: "BC Place, Vancouver",
+            badge: "Match 3",
             latlng: [49.2767, -123.1120],
-            desc: "A roaring home crowd witnesses an explosive 3-0 clean-sheet victory to start their run.",
-            videoEmbedUrl: "https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ" 
+            desc: "Returning to Vancouver to secure the points needed to advance to the knockout stages.",
+            videoEmbedUrl: "https://www.youtube.com/embed/X4WlV84rONo"
         }
     ],
     "USA": [
         {
-            title: "Irvine Base Camp",
-            badge: "Preparation",
-            latlng: [33.6846, -117.8265],
-            desc: "Establishing operational headquarters on the West Coast to gear up for grueling group stage matches."
+            title: "SoFi Stadium, Los Angeles",
+            badge: "Match 1",
+            latlng: [33.9535, -118.3392],
+            desc: "An electric atmosphere in LA as the US team starts their journey with a statement win.",
+            videoEmbedUrl: "https://www.youtube.com/embed/qjhVFilCHzM"
         },
         {
-            title: "SoFi Stadium",
-            badge: "Group Stage - Match 1",
-            latlng: [33.9535, -118.3392],
-            desc: "Fired up an emphatic 4-1 statement win over their opponents in front of a packed stadium.",
-            videoEmbedUrl: "https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ"
+            title: "Lumen Field, Seattle",
+            badge: "Match 2",
+            latlng: [47.5952, -122.3316],
+            desc: "A rainy night in Seattle tests the squad's resolve in a physical and challenging match.",
+            videoEmbedUrl: "https://www.youtube.com/embed/qjhVFilCHzM"
+        },
+        {
+            title: "Levi's Stadium, Santa Clara",
+            badge: "Match 3",
+            latlng: [37.4030, -121.9700],
+            desc: "The USA closes out the group stage with a clinical performance to punch their ticket to the round of 16.",
+            videoEmbedUrl: "https://www.youtube.com/embed/qjhVFilCHzM"
         }
     ]
 };
