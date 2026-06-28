@@ -6,87 +6,523 @@
     <title>World Cup Team Route Tracker</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
-        :root { --primary-color: #1e3a8a; --accent-color: #2563eb; --bg-color: #f8fafc; --panel-bg: #ffffff; --text-main: #0f172a; --text-muted: #64748b; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        header { background-color: var(--primary-color); color: white; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
-        #main-container { display: flex; flex: 1; overflow: hidden; }
-        #map { flex: 1; }
-        #story-panel { width: 380px; background: var(--panel-bg); display: flex; flex-direction: column; border-left: 1px solid #e2e8f0; }
-        .timeline-scroll-area { flex: 1; overflow-y: auto; padding: 1.5rem; }
-        .timeline-card { background: #ffffff; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; }
-        .video-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.96); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        .video-overlay.open { display: flex; }
-        .modal-box { width: 90%; max-width: 850px; aspect-ratio: 16/9; background: #000; position: relative; border-radius: 0.75rem; }
-        .close-overlay-btn { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.5); color: white; border: none; padding: 6px 14px; border-radius: 20px; cursor: pointer; }
-        .fallback-container { margin-top: 1.5rem; text-align: center; color: #94a3b8; }
-        .fallback-btn { display: inline-block; margin-top: 0.5rem; padding: 0.6rem 1.2rem; background-color: #2563eb; color: white; text-decoration: none; font-weight: bold; border-radius: 0.375rem; }
-        .highlight-link-btn { display: inline-block; margin-top: 10px; padding: 0.5rem 0.75rem; background-color: var(--accent-color); color: white !important; text-decoration: none; font-size: 12px; border-radius: 0.375rem; cursor: pointer; }
+        :root {
+            --primary-color: #1e3a8a;
+            --accent-color: #2563eb;
+            --bg-color: #f8fafc;
+            --panel-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            z-index: 1000;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        select {
+            padding: 0.5rem 2rem 0.5rem 1rem;
+            font-size: 0.95rem;
+            border-radius: 0.375rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1rem;
+        }
+
+        select option {
+            background-color: white;
+            color: var(--text-main);
+        }
+
+        #main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #map {
+            flex: 1;
+            height: 100%;
+        }
+
+        #story-panel {
+            width: 380px;
+            background-color: var(--panel-bg);
+            box-shadow: -4px 0 20px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            z-index: 999;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        .panel-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            background: linear-gradient(to bottom, #ffffff, #f8fafc);
+        }
+
+        .panel-header h2 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        #team-subtitle {
+            margin: 0;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .timeline-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 2.25rem;
+            top: 1.5rem;
+            bottom: 1.5rem;
+            width: 2px;
+            background-color: #e2e8f0;
+            display: none;
+        }
+
+        .timeline-card {
+            display: flex;
+            gap: 1.25rem;
+            margin-bottom: 1.75rem;
+            position: relative;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            animation: slideIn 0.4s ease-out forwards;
+        }
+
+        .timeline-card.latest-active {
+            border-color: var(--accent-color);
+            background-color: #eff6ff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+        }
+
+        .card-dot {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background-color: white;
+            border: 2px solid var(--text-muted);
+            margin-top: 0.25rem;
+            z-index: 2;
+            flex-shrink: 0;
+        }
+
+        .timeline-card.latest-active .card-dot {
+            border-color: var(--accent-color);
+            background-color: var(--accent-color);
+        }
+
+        .card-body {
+            flex: 1;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            border-radius: 0.25rem;
+            margin-bottom: 0.375rem;
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .timeline-card.latest-active .badge {
+            background-color: #dbeafe;
+            color: var(--accent-color);
+        }
+
+        .location-title {
+            margin: 0 0 0.35rem 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .location-desc {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #475569;
+            line-height: 1.45;
+        }
+
+        .panel-footer {
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            background-color: #f8fafc;
+        }
+
+        .btn-next {
+            width: 100%;
+            background-color: var(--text-main);
+            color: white;
+            border: none;
+            padding: 0.85rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-next:hover { background-color: #1e293b; }
+        .btn-next:disabled { background-color: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+
+        .placeholder-message {
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 4rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            padding: 0 1rem;
+        }
+
+        /* Theater overlay lightbox player panel */
+        .video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(15, 23, 42, 0.9);
+            z-index: 5000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .video-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            width: 90%;
+            max-width: 800px;
+            aspect-ratio: 16/9;
+            background: #000;
+            position: relative;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .close-overlay-btn {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .modal-box iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Leaflet popup internal content structures */
+        .popup-gif-container {
+            width: 220px;
+            margin-top: 6px;
+        }
+        .popup-gif-container img {
+            width: 100%;
+            border-radius: 6px;
+            object-fit: cover;
+            height: 120px;
+            border: 1px solid #e2e8f0;
+        }
+        .highlight-link-btn {
+            display: inline-block;
+            margin-top: 8px;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .highlight-link-btn:hover { text-decoration: underline; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            #main-container { flex-direction: column; }
+            #story-panel { width: 100%; height: 45%; }
+        }
     </style>
 </head>
 <body>
-    <header><h1>🏆 World Cup Journey Engine</h1><select id="country-select"><option value="">Select a Country...</option></select></header>
+
+    <header>
+        <h1>🏆 World Cup Journey Engine</h1>
+        <div class="controls">
+            <select id="country-select">
+                <option value="">Select a Country...</option>
+            </select>
+        </div>
+    </header>
+
     <div id="main-container">
         <div id="map"></div>
         <div id="story-panel">
-            <div id="timeline-box" class="timeline-scroll-area"><div id="appended-cards-container"></div></div>
+            <div class="panel-header">
+                <h2 id="team-title">Select a Team</h2>
+                <p id="team-subtitle">Global Route Map</p>
+            </div>
+            
+            <div id="timeline-box" class="timeline-scroll-area">
+                <div id="line-spine" class="timeline-line"></div>
+                <div id="placeholder-text" class="placeholder-message">
+                    Choose a country from the menu above to map out their journey step-by-step.
+                </div>
+                <div id="appended-cards-container"></div>
+            </div>
+
+            <div id="footer-actions" class="panel-footer" style="display: none;">
+                <button id="next-btn" class="btn-next">
+                    <span>Next Destination</span> ➡️
+                </button>
+            </div>
         </div>
     </div>
+
     <div id="theater-overlay" class="video-overlay">
         <div class="modal-box">
             <button id="close-overlay" class="close-overlay-btn">✕ Close Player</button>
+            <iframe id="theater-iframe" src="" allow="autoplay; encrypted-media; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
             <iframe id="theater-iframe" src="" allow="autoplay; encrypted-media; fullscreen"></iframe>
         </div>
-        <div class="fallback-container">
-            <p>Missing video?</p>
-            <a id="fallback-youtube-link" href="#" target="_blank" class="fallback-btn">▶️ Open Directly on YouTube</a>
-        </div>
     </div>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
     <script src="data.js"></script>
+
     <script>
-        const map = L.map('map').setView([28, -50], 3);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
+        // Init Map Environment
+        const map = L.map('map', { center: [28, -50], zoom: 3, zoomControl: false });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        }).addTo(map);
+        L.control.zoom({ position: 'topleft' }).addTo(map);
+
+        // UI Selectors
+        const dropdown = document.getElementById('country-select');
+        const teamTitle = document.getElementById('team-title');
+        const teamSubtitle = document.getElementById('team-subtitle');
+        const placeholderText = document.getElementById('placeholder-text');
+        const lineSpine = document.getElementById('line-spine');
+        const cardsContainer = document.getElementById('appended-cards-container');
+        const footerActions = document.getElementById('footer-actions');
+        const nextBtn = document.getElementById('next-btn');
+        const timelineBox = document.getElementById('timeline-box');
+
+        // Overlay Selectors
         const theaterOverlay = document.getElementById('theater-overlay');
         const theaterIframe = document.getElementById('theater-iframe');
-        const fallbackYoutubeLink = document.getElementById('fallback-youtube-link');
+        const closeOverlay = document.getElementById('close-overlay');
 
+        let activeJourneyData = [];
+        let currentStepIndex = 0;
+        let markerLayerGroup = L.layerGroup().addTo(map);
+        let pathLayerGroup = L.layerGroup().addTo(map);
+
+        // Dynamically configure options array from worldCupData keys
+        if (typeof worldCupData !== 'undefined') {
+            Object.keys(worldCupData).sort().forEach(code => {
+                const opt = document.createElement('option');
+                opt.value = code;
+                opt.textContent = code;
+                dropdown.appendChild(opt);
+            });
+        }
+
+        // Lightbox trigger engine
         window.launchTheaterPlayer = function(embedUrl) {
             theaterIframe.src = embedUrl;
-            // Robust extraction of Video ID to create a valid direct watch link
-            const videoId = embedUrl.split('/').pop();
-            fallbackYoutubeLink.href = `https://www.youtube.com/watch?v=${videoId}`;
             theaterOverlay.classList.add('open');
         };
 
-        document.getElementById('close-overlay').addEventListener('click', () => {
+        closeOverlay.addEventListener('click', () => {
             theaterOverlay.classList.remove('open');
-            theaterIframe.src = "";
+            theaterIframe.src = ""; // Instantly drops background video audio streams
         });
 
-        const dropdown = document.getElementById('country-select');
-        Object.keys(worldCupData).sort().forEach(code => {
-            const opt = document.createElement('option'); opt.value = code; opt.textContent = code;
-            dropdown.appendChild(opt);
-        });
+        function appendAndRenderStep(index) {
+            const stop = activeJourneyData[index];
+            if (!stop) return;
+
+            document.querySelectorAll('.timeline-card').forEach(c => c.classList.remove('latest-active'));
+
+            // Generate timeline milestone layout
+            const card = document.createElement('div');
+            card.className = 'timeline-card latest-active';
+            card.innerHTML = `
+                <div class="card-dot"></div>
+                <div class="card-body">
+                    <span class="badge">${stop.badge || `Stop ${index + 1}`}</span>
+                    <h3 class="location-title">${stop.title}</h3>
+                    <p class="location-desc">${stop.desc}</p>
+                </div>
+            `;
+            cardsContainer.appendChild(card);
+
+            timelineBox.scrollTo({ top: timelineBox.scrollHeight, behavior: 'smooth' });
+            markerLayerGroup.clearLayers();
+
+            const currentIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div style="background-color: #2563eb; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.2);">${index + 1}</div>`,
+                iconSize: [26, 26],
+                iconAnchor: [13, 13]
+            });
+            const marker = L.marker(stop.latlng, { icon: currentIcon }).addTo(markerLayerGroup);
+
+            // Vector line generation rules
+            pathLayerGroup.clearLayers();
+            const visibleRouteHistory = activeJourneyData.slice(0, index + 1).map(s => s.latlng);
+            if (visibleRouteHistory.length > 1) {
+                const trajectoryLine = L.polyline(visibleRouteHistory, {
+                    color: '#2563eb', weight: 4, opacity: 0.8, dashArray: '8, 10', lineJoin: 'round'
+                });
+                pathLayerGroup.addLayer(trajectoryLine);
+            }
+
+            map.flyTo(stop.latlng, index === 0 ? 4 : 6, { animate: true, duration: 1.4 });
+
+            // Build Leaflet Popup block dynamically mapping medias
+            let bubbleHtml = `<div style="min-width: 220px;">
+                <b style="font-size:14px; color:#1e3a8a;">${stop.title}</b>
+                <p style="margin:4px 0 8px 0; font-size:12px; color:#475569; line-height:1.4;">${stop.desc}</p>`;
+            
+            if (stop.gifUrl) {
+                bubbleHtml += `
+                <div class="popup-gif-container">
+                    <img src="${stop.gifUrl}" alt="Match summary loops">
+                </div>`;
+            }
+            if (stop.videoEmbedUrl) {
+                bubbleHtml += `<a onclick="launchTheaterPlayer('${stop.videoEmbedUrl}')" class="highlight-link-btn">📺 Watch Full Match Highlights →</a>`;
+            }
+
+            bubbleHtml += `</div>`;
+
+            setTimeout(() => {
+                marker.bindPopup(bubbleHtml).openPopup();
+            }, 1400);
+
+            if (index >= activeJourneyData.length - 1) {
+                nextBtn.innerHTML = `<span>Journey Completed</span> 🎉`;
+                nextBtn.disabled = true;
+            } else {
+                nextBtn.innerHTML = `<span>Next Destination</span> ➡️`;
+                nextBtn.disabled = false;
+            }
+        }
 
         dropdown.addEventListener('change', (e) => {
             const selection = e.target.value;
-            const container = document.getElementById('appended-cards-container');
-            container.innerHTML = '';
-            if (worldCupData[selection]) {
-                worldCupData[selection].forEach((stop, i) => {
-                    const card = document.createElement('div');
-                    card.className = 'timeline-card';
-                    card.innerHTML = `<h3>${stop.title}</h3><p>${stop.desc}</p>`;
-                    if (stop.videoEmbedUrl) {
-                        const btn = document.createElement('a');
-                        btn.className = 'highlight-link-btn';
-                        btn.textContent = '📺 Watch Highlights';
-                        btn.onclick = () => launchTheaterPlayer(stop.videoEmbedUrl);
-                        card.appendChild(btn);
-                    }
-                    container.appendChild(card);
-                });
+            cardsContainer.innerHTML = '';
+            markerLayerGroup.clearLayers();
+            pathLayerGroup.clearLayers();
+
+            if (!selection || !worldCupData[selection]) {
+                teamTitle.textContent = "Select a Team";
+                teamSubtitle.textContent = "Global Route Map";
+                placeholderText.style.display = "block";
+                lineSpine.style.display = "none";
+                footerActions.style.display = "none";
+                return;
+            }
+
+            activeJourneyData = worldCupData[selection];
+            currentStepIndex = 0;
+            teamTitle.textContent = selection;
+            teamSubtitle.textContent = `Progressive Road Map`;
+            placeholderText.style.display = "none";
+            lineSpine.style.display = "block";
+            footerActions.style.display = "block";
+
+            appendAndRenderStep(currentStepIndex);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentStepIndex < activeJourneyData.length - 1) {
+                currentStepIndex++;
+                appendAndRenderStep(currentStepIndex);
             }
         });
     </script>
