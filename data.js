@@ -1,4 +1,4 @@
-// World Cup Tournament Data Layer - Match Highlights Focus
+// World Cup Tournament Data Layer - Match Highlights Focus (Fixes Error 153)
 const worldCupData = {
     "Argentina": [
         {
@@ -12,7 +12,7 @@ const worldCupData = {
             badge: "Group Stage - Match 1",
             latlng: [40.8128, -74.0742],
             desc: "Secured a thrilling 2-1 victory under the lights to open up their title defense tournament cycle.",
-            videoEmbedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+            videoEmbedUrl: "https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ" // Cookie-less privacy domain
         }
     ],
     "Canada": [
@@ -27,7 +27,7 @@ const worldCupData = {
             badge: "Group Stage - Match 1",
             latlng: [49.2767, -123.1120],
             desc: "A roaring home crowd witnesses an explosive 3-0 clean-sheet victory to start their run.",
-            videoEmbedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+            videoEmbedUrl: "https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ" 
         }
     ],
     "USA": [
@@ -42,7 +42,7 @@ const worldCupData = {
             badge: "Group Stage - Match 1",
             latlng: [33.9535, -118.3392],
             desc: "Fired up an emphatic 4-1 statement win over their opponents in front of a packed stadium.",
-            videoEmbedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+            videoEmbedUrl: "https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ"
         }
     ]
 };
